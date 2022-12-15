@@ -1,31 +1,72 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerCtr : MonoBehaviour
 {
-    public GameObject Cam; 
-    public CharacterController SelectPlayer; 
-    public float Speed; 
-    public float JumpPow;
+    public GameObject Cam;
+    public CharacterController SelectPlayer;
+    public float Speed;
+    public int hp = 3;
+    public Transform spawnPoint;
 
-    private float Gravity; 
+    private float Gravity;
     private Vector3 MoveDir;
-    private bool JumpButtonPressed;  
-    private bool FlyingMode;  
+    private bool FlyingMode;
+
+    public float shakeTime;
+    public float shakeSpeed;
+    public float shakeAmount;
+    private Transform cam;
 
     void Start()
     {
-        Speed = 5.0f;
-        Gravity = 10.0f;
+        Speed = 10f;
+        Gravity = 7f;
         MoveDir = Vector3.zero;
-        JumpPow = 5.0f;
-        JumpButtonPressed = false;
         FlyingMode = false;
+        cam = GameObject.FindGameObjectWithTag("MainCamera").transform;
+        shakeTime = 0.3f;
+        shakeSpeed = 2f;
+        shakeAmount = 10f;
     }
 
     void Update()
+    {
+        Move();
+        Health();
+    }
+
+    public Text healthText;
+
+    public void Health()
+    {
+        healthText.text = string.Format($"HP : {hp}");
+    }
+
+    private void OnTriggerEnter(Collider col)
+    {
+        if (col.gameObject.CompareTag("Enemy"))
+        {
+            hp -= 1;
+            StartCoroutine(Shake());
+            Debug.Log(hp);
+        }
+        if (hp < 1)
+        {
+            Die();
+        }
+
+    }
+
+    void Die()
+    {
+        transform.position = spawnPoint.position;
+        Time.timeScale = 0;
+    }
+
+    void Move()
     {
         if (SelectPlayer == null) return;
 
@@ -41,24 +82,17 @@ public class PlayerCtr : MonoBehaviour
             MoveDir = SelectPlayer.transform.TransformDirection(MoveDir);
             MoveDir *= Speed;
 
-            if (JumpButtonPressed == false && Input.GetButton("Jump"))
-            {
-                SelectPlayer.transform.rotation = Quaternion.Euler(0, 45, 0);
-                JumpButtonPressed = true;
-                MoveDir.y = JumpPow;
-            }
+
         }
         else
         {
-            if (MoveDir.y < 0 && JumpButtonPressed == false && Input.GetButton("Jump"))
+            if (MoveDir.y < 0)
             {
                 FlyingMode = true;
             }
 
             if (FlyingMode)
             {
-                JumpButtonPressed = true;
-
                 MoveDir.y *= 0.95f;
 
                 if (MoveDir.y > -1) MoveDir.y = -1;
@@ -69,12 +103,19 @@ public class PlayerCtr : MonoBehaviour
             else
                 MoveDir.y -= Gravity * Time.deltaTime;
         }
-
-        if (!Input.GetButton("Jump"))
-        {
-            JumpButtonPressed = false;  
-            FlyingMode = false;        
-        }
         SelectPlayer.Move(MoveDir * Time.deltaTime);
+    }
+
+    IEnumerator Shake()
+    {
+        Vector3 originPosition = cam.localPosition;
+        float elapsedTime = 0.0f;
+        while (elapsedTime < shakeTime)
+        {
+            Vector3 randomPoint = originPosition + Random.insideUnitSphere * shakeAmount; cam.localPosition = Vector3.Lerp(cam.localPosition, randomPoint, Time.deltaTime * shakeSpeed);
+            yield return null;
+            elapsedTime += Time.deltaTime;
+        }
+        cam.localPosition = originPosition;
     }
 }

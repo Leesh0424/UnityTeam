@@ -4,19 +4,39 @@ using UnityEngine;
 
 public class Camera : MonoBehaviour
 {
-    public GameObject player; 
-    public float xmove = 0; 
-    public float ymove = 0;  
-    public float distance = 3;
+    public Transform target;
+    public float targetY;
 
-    // Update is called once per frame
-    void Update()
+    public float xRotMax;
+    public float rotSpeed;
+    public float scrollSpeed;
+
+    public float distance;
+    public float minDistance;
+    public float maxDistance;
+
+    private float xRot;
+    private float yRot;
+    private Vector3 targetPos;
+    private Vector3 dir;
+
+    private void Update()
     {
-        xmove += Input.GetAxis("Mouse X"); 
-        ymove -= Input.GetAxis("Mouse Y"); 
-        
-        transform.rotation = Quaternion.Euler(ymove, xmove, 0); 
-        Vector3 reverseDistance = new Vector3(0.0f, 0.0f, distance); 
-        transform.position = player.transform.position - transform.rotation * reverseDistance; 
+        xRot += Input.GetAxis("Mouse Y") * rotSpeed * Time.deltaTime;
+        yRot += Input.GetAxis("Mouse X") * rotSpeed * Time.deltaTime;
+        distance += -Input.GetAxis("Mouse ScrollWheel") * scrollSpeed * Time.deltaTime;
+
+        xRot = Mathf.Clamp(xRot, -xRotMax, xRotMax);
+        distance = Mathf.Clamp(distance, minDistance, maxDistance);
+
+        targetPos = target.position + Vector3.up * targetY;
+
+        dir = Quaternion.Euler(-xRot, yRot, 0f) * Vector3.forward;
+        transform.position = targetPos + dir * -distance;
+    }
+
+    private void LateUpdate()
+    {
+        transform.LookAt(targetPos);
     }
 }
