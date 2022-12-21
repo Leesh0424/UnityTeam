@@ -8,8 +8,11 @@ using static UnityEngine.EventSystems.EventTrigger;
 public class Enemy : MonoBehaviour
 {
     public Transform target;
+    public Transform runAwayPos;
     public NavMeshAgent agent;
     public Transform spwanPosition;
+
+    public ParticleSystem hitEffect;
 
     void Start()
     {
@@ -18,17 +21,18 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
-        UpdateRun();
+        StartCoroutine(Run());
         if (Time.timeScale == 0)
         {
             transform.position = spwanPosition.position;
         }
     }
 
-    private void UpdateRun()
+    IEnumerator Run()
     {
         agent.speed = 9f;
         agent.destination = target.transform.position;
+        yield return null;
     }
 
     private void OnTriggerEnter(Collider collision)

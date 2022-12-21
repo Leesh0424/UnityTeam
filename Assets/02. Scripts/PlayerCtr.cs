@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PlayerCtr : MonoBehaviour
@@ -60,13 +61,14 @@ public class PlayerCtr : MonoBehaviour
 
     }
 
-    void Die()
+    public void Die()
     {
         transform.position = spawnPoint.position;
-        Time.timeScale = 0;
+        hp = 3;
+        SceneManager.LoadScene("GameOver");
     }
 
-    void Move()
+    private void Move()
     {
         if (SelectPlayer == null) return;
 
